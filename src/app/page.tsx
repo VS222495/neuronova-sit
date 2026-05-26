@@ -18,7 +18,8 @@ function getCtx(): AudioContext | null {
 
 type SoundType = 'click' | 'xp' | 'correct' | 'wrong' | 'levelup'
 
-function playSound(type: SoundType) {
+function playSound(type: string) {
+  const _type = type as SoundType
   const ctx = getCtx()
   if (!ctx) return
   try {
@@ -32,11 +33,11 @@ function playSound(type: SoundType) {
       g.gain.exponentialRampToValueAtTime(0.001, now + start + dur)
       o.start(now + start); o.stop(now + start + dur)
     }
-    if (type === 'click')  { osc(700, 'sine', 0, .06, .06) }
-    if (type === 'xp')     { osc(1000, 'sine', 0, .07, .05); osc(1400, 'sine', .04, .07, .04) }
-    if (type === 'correct'){ [523,659,784].forEach((f,i)=>osc(f,'sine',i*.07,.18,.1)) }
-    if (type === 'wrong')  { [320,220].forEach((f,i)=>osc(f,'square',i*.1,.15,.08)) }
-    if (type === 'levelup'){ [523,659,784,1047,1319].forEach((f,i)=>osc(f,'triangle',i*.09,.22,.12)) }
+    if (_type === 'click')  { osc(700, 'sine', 0, .06, .06) }
+    if (_type === 'xp')     { osc(1000, 'sine', 0, .07, .05); osc(1400, 'sine', .04, .07, .04) }
+    if (_type === 'correct'){ [523,659,784].forEach((f,i)=>osc(f,'sine',i*.07,.18,.1)) }
+    if (_type === 'wrong')  { [320,220].forEach((f,i)=>osc(f,'square',i*.1,.15,.08)) }
+    if (_type === 'levelup'){ [523,659,784,1047,1319].forEach((f,i)=>osc(f,'triangle',i*.09,.22,.12)) }
   } catch { /* ignore */ }
 }
 
