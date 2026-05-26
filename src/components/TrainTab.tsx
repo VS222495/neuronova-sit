@@ -261,6 +261,41 @@ export default function TrainTab({ addXP, playSound }: Props) {
               <div style={{ height: '100%', borderRadius: 3, background: 'linear-gradient(90deg,var(--blue),var(--purple))', width: `${(epoch / MAX_EPOCHS) * 100}%`, transition: 'width .2s' }} />
             </div>
           </div>
+
+          {/* Živý komentář */}
+          {epoch === 0 && !isTraining && (
+            <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(59,130,246,.07)', border: '1px solid rgba(59,130,246,.2)', borderRadius: 10, fontSize: 13, color: 'var(--text2)', lineHeight: 1.6 }}>
+              🎮 <strong style={{ color: 'var(--blue)' }}>Připraveno ke startu!</strong> Nastav learning rate a klikni na „Spustit trénování".
+              Sleduj, jak červená křivka (chyba) klesá a zelená (přesnost) stoupá.
+            </div>
+          )}
+          {isTraining && epoch < MAX_EPOCHS * 0.25 && (
+            <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(251,191,36,.07)', border: '1px solid rgba(251,191,36,.2)', borderRadius: 10, fontSize: 13, color: 'var(--text2)', lineHeight: 1.6 }}>
+              🔥 <strong style={{ color: '#fbbf24' }}>Začátek — síť se teprve „probouzí"!</strong> Na začátku bývá chyba vysoká —
+              váhy jsou náhodné, síť ještě neví vůbec nic. Stejně jako ty první den v nové práci. 😄
+            </div>
+          )}
+          {isTraining && epoch >= MAX_EPOCHS * 0.25 && epoch < MAX_EPOCHS * 0.7 && (
+            <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(168,85,247,.07)', border: '1px solid rgba(168,85,247,.2)', borderRadius: 10, fontSize: 13, color: 'var(--text2)', lineHeight: 1.6 }}>
+              ⚡ <strong style={{ color: 'var(--purple)' }}>Půlka — síť se rychle učí!</strong> Gradient descent nachází cestu dolů po „kopci chyby".
+              Každá epocha = jeden průchod celým datasetem a úprava všech vah o kousíček.
+            </div>
+          )}
+          {isTraining && epoch >= MAX_EPOCHS * 0.7 && (
+            <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(0,255,136,.07)', border: '1px solid rgba(0,255,136,.2)', borderRadius: 10, fontSize: 13, color: 'var(--text2)', lineHeight: 1.6 }}>
+              🏁 <strong style={{ color: 'var(--green)' }}>Finišujeme!</strong> Loss se zpomaluje — síť se blíží minimu chybové funkce.
+              Přesnost by teď měla být stabilní. Tohle je moment, kdy Tesla Autopilot
+              „ví" jak rozpoznat chodce. 🚗
+            </div>
+          )}
+          {!isTraining && epoch === MAX_EPOCHS && (
+            <div style={{ marginTop: 12, padding: '10px 14px', background: lastAcc >= 90 ? 'rgba(0,255,136,.07)' : 'rgba(251,191,36,.07)', border: `1px solid ${lastAcc >= 90 ? 'rgba(0,255,136,.25)' : 'rgba(251,191,36,.25)'}`, borderRadius: 10, fontSize: 13, color: 'var(--text2)', lineHeight: 1.6 }}>
+              {lastAcc >= 90
+                ? `✅ Skvělý výsledek! ${lastAcc.toFixed(0)}% přesnost — síť se naučila správně klasifikovat skoro všechny body. Zkus změnit learning rate a trénovat znovu!`
+                : `⚠️ ${lastAcc.toFixed(0)}% přesnost — zkus jiný learning rate. Příliš velký způsobí „přeskakování" přes minimum, příliš malý způsobí pomalé učení.`
+              }
+            </div>
+          )}
         </div>
 
         {/* Controls */}
@@ -269,15 +304,27 @@ export default function TrainTab({ addXP, playSound }: Props) {
           {/* Learning rate */}
           <div className={styles.card}>
             <div className={styles.sectionTitle}>🎓 Learning rate</div>
+            <p style={{ fontSize: 12, color: 'var(--text2)', lineHeight: 1.6, marginBottom: 10 }}>
+              Learning rate říká síti, <strong style={{ color: 'var(--text)' }}>jak velké kroky</strong> dělá při učení.
+              Je to jako nastavení citlivosti myši — moc nízko a jsi pomalý, moc vysoko a klikáš vedle.
+            </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <span style={{ fontSize: 13, color: 'var(--text2)' }}>Rychlost učení</span>
               <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--blue)', fontFamily: '"JetBrains Mono",monospace' }}>{lr.toFixed(3)}</span>
             </div>
             <input type="range" min={0.001} max={0.8} step={0.001} value={lr} className="blue"
               onChange={e => setLr(parseFloat(e.target.value))} />
-            <div style={{ marginTop: 10, padding: '8px 10px', background: 'rgba(255,255,255,.04)', borderRadius: 8, fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 18 }}>{lrWarning.emoji}</span>
-              <span style={{ color: lrWarning.color }}>{lrWarning.text}</span>
+            <div style={{ marginTop: 10, padding: '10px 12px', background: 'rgba(255,255,255,.04)', borderRadius: 8, fontSize: 13, lineHeight: 1.6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 18 }}>{lrWarning.emoji}</span>
+                <strong style={{ color: lrWarning.color }}>{lrWarning.text}</strong>
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text2)' }}>
+                {lr < 0.01 && '🐢 Síť se učí, ale velmi pomalu. Jako učit se jízdu na kole tak, že každý den posuneš řidítka o milimetr.'}
+                {lr >= 0.01 && lr <= 0.2 && '✅ Zlatá střední cesta. Většina reálných modelů (GPT, ResNet) se trénuje v tomto rozsahu.'}
+                {lr > 0.2 && lr <= 0.5 && '⚡ Rychlé, ale riskantní. Loss může „přeskakovat" přes minimum sem a tam.'}
+                {lr > 0.5 && '💥 Příliš velké kroky! Síť přeskočí minimum a chyba místo klesání roste. Zkus snížit.'}
+              </div>
             </div>
           </div>
 

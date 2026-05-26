@@ -196,6 +196,18 @@ export default function ArchTab({ addXP }: Props) {
               boxShadow: '0 0 18px rgba(0,255,136,.18)', zIndex: 10, lineHeight: 1.6,
             }}>{tooltip.text}</div>
           )}
+
+          {/* Věděl/a jsi? */}
+          <div style={{
+            marginTop: 12, padding: '12px 16px',
+            background: 'rgba(251,191,36,.06)', border: '1px solid rgba(251,191,36,.2)',
+            borderRadius: 10, fontSize: 13, color: 'var(--text2)', lineHeight: 1.65,
+          }}>
+            <strong style={{ color: '#fbbf24' }}>💡 Věděl/a jsi?</strong>
+            {' '}GPT-4 od OpenAI má přes <strong style={{ color: 'var(--text)' }}>1 bilion parametrů</strong> — to je milionkrát víc
+            než má tvoje síť tady. Tesla Autopilot používá síť s <strong style={{ color: 'var(--text)' }}>48 kamerami</strong> a miliony
+            neuronů, která rozhoduje každých pár milisekund jestli brzdit nebo odbočit. 🚗
+          </div>
         </div>
 
         {/* Sidebar */}
@@ -204,22 +216,42 @@ export default function ArchTab({ addXP }: Props) {
           <div className={styles.card}>
             <div className={styles.sectionTitle}>⚙️ Konfigurace</div>
 
-            {[
-              { label: 'Skryté vrstvy', val: hidden, min: 1, max: 4, color: 'var(--purple)', cls: 'purple', fn: setH, hint: ['Jednoduchá', 'Hluboká'] },
-              { label: 'Neurony / vrstva', val: neurons, min: 2, max: 8, color: 'var(--green)', cls: '', fn: setN, hint: ['Úzká', 'Široká'] },
-            ].map(({ label, val, min, max, color, cls, fn, hint }) => (
-              <div key={label} style={{ marginBottom: 18 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <label style={{ fontSize: 13, color: 'var(--text2)' }}>{label}</label>
-                  <span style={{ fontSize: 22, fontWeight: 800, color, fontFamily: '"JetBrains Mono",monospace' }}>{val}</span>
-                </div>
-                <input type="range" min={min} max={max} value={val} className={cls}
-                  onChange={e => fn(Number(e.target.value))} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text3)', marginTop: 3 }}>
-                  <span>{hint[0]}</span><span>{hint[1]}</span>
-                </div>
+              {/* Slider: Skryté vrstvy */}
+            <div style={{ marginBottom: 6 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <label style={{ fontSize: 13, color: 'var(--text2)' }}>Skryté vrstvy</label>
+                <span style={{ fontSize: 22, fontWeight: 800, color: 'var(--purple)', fontFamily: '"JetBrains Mono",monospace' }}>{hidden}</span>
               </div>
-            ))}
+              <input type="range" min={1} max={4} value={hidden} className="purple"
+                onChange={e => setH(Number(e.target.value))} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text3)', marginTop: 3, marginBottom: 8 }}>
+                <span>Jednoduchá</span><span>Hluboká</span>
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text2)', lineHeight: 1.6, padding: '8px 10px', background: 'rgba(168,85,247,.07)', borderRadius: 8, borderLeft: '3px solid rgba(168,85,247,.5)' }}>
+                {hidden === 1 && '🟢 1 vrstva — jednoduchá síť. Zvládne třeba rozlišit spam od normálního emailu.'}
+                {hidden === 2 && '🔵 2 vrstvy — dobrý základ. Takto fungují jednoduché obrazové filtry.'}
+                {hidden === 3 && '🟡 3 vrstvy — začínáme se blížit k \"hlubokému učení\" (deep learning).'}
+                {hidden === 4 && '🔴 4 vrstvy — moderní sítě mívají stovky vrstev. GPT-4 jich má přes 96!'}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 0, marginTop: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <label style={{ fontSize: 13, color: 'var(--text2)' }}>Neurony / vrstva</label>
+                <span style={{ fontSize: 22, fontWeight: 800, color: 'var(--green)', fontFamily: '"JetBrains Mono",monospace' }}>{neurons}</span>
+              </div>
+              <input type="range" min={2} max={8} value={neurons}
+                onChange={e => setN(Number(e.target.value))} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text3)', marginTop: 3, marginBottom: 8 }}>
+                <span>Úzká</span><span>Široká</span>
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text2)', lineHeight: 1.6, padding: '8px 10px', background: 'rgba(0,255,136,.06)', borderRadius: 8, borderLeft: '3px solid rgba(0,255,136,.4)' }}>
+                {neurons <= 3 && '💡 Málo neuronů = síť se musí hodně „snažit". Může být pomalá nebo nepřesná.'}
+                {neurons === 4 && '💡 4 neurony na vrstvu — pro jednodušší úlohy naprosto dostačující.'}
+                {neurons >= 5 && neurons <= 6 && '💡 Více neuronů = více kapacity pro složité vzory. Ale taky víc parametrů k trénování.'}
+                {neurons > 6 && '💡 Hodně neuronů! iPhone Face ID používá síť s tisíci neurony na vrstvu.'}
+              </div>
+            </div>
           </div>
 
           {/* Stats */}

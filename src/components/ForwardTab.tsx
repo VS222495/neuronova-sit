@@ -236,9 +236,15 @@ export default function ForwardTab({ addXP }: Props) {
 
         {/* Controls + output */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {/* Input sliders */}
+
+          {/* KROK 1 — Vstup */}
           <div className={styles.card}>
-            <div className={styles.sectionTitle}>🎛️ Vstupní hodnoty</div>
+            <div className={styles.sectionTitle}>① Vstupní vrstva</div>
+            <p style={{ fontSize: 12, color: 'var(--text2)', lineHeight: 1.6, marginBottom: 12 }}>
+              Sem přicházejí surová data. Představ si to jako <strong style={{ color: 'var(--text)' }}>smysly</strong> — oči, uši, nos.
+              Pro YouTube doporučovač to mohou být: délka videa, počet zhlédnutí, čas spuštění.
+              Posuň slidery a sleduj, jak se mění celá síť! 👇
+            </p>
             {[0, 1, 2].map(i => (
               <div key={i} style={{ marginBottom: i < 2 ? 18 : 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 }}>
@@ -256,9 +262,14 @@ export default function ForwardTab({ addXP }: Props) {
             ))}
           </div>
 
-          {/* Hidden activations */}
+          {/* KROK 2 — Skrytá vrstva */}
           <div className={styles.card}>
-            <div className={styles.sectionTitle}>⚡ Skrytá vrstva (ReLU)</div>
+            <div className={styles.sectionTitle}>② Skrytá vrstva — ReLU</div>
+            <p style={{ fontSize: 12, color: 'var(--text2)', lineHeight: 1.6, marginBottom: 10 }}>
+              Každý neuron sečte vstupy, vynásobí je váhami a projde přes <strong style={{ color: 'var(--purple)' }}>ReLU</strong>.
+              ReLU je brutálně jednoduchá: záporné hodnoty = 0 (neuron spí 💤), kladné hodnoty projdou dál.
+              Je to jako světelný spínač — buď svítí, nebo ne.
+            </p>
             {result.h.map((v, i) => {
               const norm = Math.min(v, 2) / 2
               const color = norm === 0 ? 'var(--text3)' : `rgba(${Math.round(60+108*norm)},${Math.round(30+225*norm)},${Math.round(100+147*norm)},1)`
@@ -276,11 +287,19 @@ export default function ForwardTab({ addXP }: Props) {
                 </div>
               )
             })}
+            <p style={{ fontSize: 11, color: 'var(--text3)', marginTop: 8, lineHeight: 1.5 }}>
+              💡 Čím více neuronů svítí, tím „jistější" je síť ve svém výstupu.
+            </p>
           </div>
 
-          {/* Softmax output */}
+          {/* KROK 3 — Výstup */}
           <div className={styles.card}>
-            <div className={styles.sectionTitle}>🎯 Výstup (Softmax)</div>
+            <div className={styles.sectionTitle}>③ Výstupní vrstva — Softmax</div>
+            <p style={{ fontSize: 12, color: 'var(--text2)', lineHeight: 1.6, marginBottom: 10 }}>
+              <strong style={{ color: 'var(--orange)' }}>Softmax</strong> je závěrečný rozhodčí. Vezme čísla z posledních neuronů
+              a přepočítá je na procenta, která se vždy sečtou na 100 %.
+              Přesně takhle Google Lens rozhoduje: „90 % pes, 8 % vlk, 2 % kočka." 🐕
+            </p>
             {[0, 1].map(i => (
               <div key={i} style={{ marginBottom: i === 0 ? 14 : 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
@@ -301,10 +320,6 @@ export default function ForwardTab({ addXP }: Props) {
               🏆 Predikce: <strong style={{ color: 'var(--orange)' }}>Třída {result.out[0] > result.out[1] ? 1 : 2}</strong>
               {' '}({(Math.max(...result.out) * 100).toFixed(1)}% jistota)
             </div>
-          </div>
-
-          <div className={styles.cardPurple} style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.65 }}>
-            💡 <strong style={{ color: 'var(--purple)' }}>ReLU:</strong> Pokud je součet záporný → neuron je mrtvý (💤). Softmax převádí výstupy na pravděpodobnosti.
           </div>
         </div>
       </div>

@@ -188,6 +188,37 @@ export default function QuizTab({ addXP, playSound }: Props) {
           ))}
         </div>
 
+        {/* Co jsi se naučil/a */}
+        <div style={{
+          textAlign: 'left', marginBottom: 28,
+          background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)',
+          borderRadius: 16, padding: '20px 24px',
+        }}>
+          <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: 'var(--text)' }}>
+            🎓 Co jsi se naučil/a
+          </div>
+          {[
+            { emoji: '🧠', title: 'Neuronová síť', text: 'Je matematický model inspirovaný mozkem. Skládá se z vrstev neuronů, které si předávají signál — jako štafeta. Čím více vrstev, tím komplexnější vzory dokáže rozpoznat.' },
+            { emoji: '⚡', title: 'Aktivační funkce (ReLU)', text: 'Říká neuronu: záporné hodnoty vypni, kladné pusť dál. Díky ní se síť dokáže naučit nelineární vzory — třeba rozlišit psa od kočky, nebo spam od normálního emailu.' },
+            { emoji: '📉', title: 'Gradient descent', text: 'Optimalizační algoritmus, který síť učí. Představ si kopec — gradient descent hledá nejnižší bod (nejmenší chybu) tím, že po kopci krůček po krůčku sestupuje dolů.' },
+            { emoji: '🎭', title: 'Overfitting (přeučení)', text: 'Síť se „naučila nazpaměť" místo toho, aby pochopila obecné vzory. Řeší se dropout (náhodné vypínání neuronů při tréninku) nebo více trénovacích dat.' },
+            { emoji: '🎯', title: 'Softmax', text: 'Finální vrstva klasifikační sítě. Převádí čísla na procenta (pravděpodobnosti). Takhle ti YouTube říká: „90 % šance, že se ti tohle video líbí." — a má pravdu 😄' },
+          ].map(({ emoji, title, text }) => (
+            <div key={title} style={{ display: 'flex', gap: 12, marginBottom: 14, alignItems: 'flex-start' }}>
+              <span style={{ fontSize: 20, flexShrink: 0, marginTop: 1 }}>{emoji}</span>
+              <div>
+                <strong style={{ fontSize: 13, color: 'var(--text)', display: 'block', marginBottom: 3 }}>{title}</strong>
+                <span style={{ fontSize: 12, color: 'var(--text2)', lineHeight: 1.6 }}>{text}</span>
+              </div>
+            </div>
+          ))}
+          <div style={{ marginTop: 16, padding: '10px 14px', background: 'rgba(0,255,136,.07)', border: '1px solid rgba(0,255,136,.2)', borderRadius: 10, fontSize: 12, color: 'var(--text2)', lineHeight: 1.6 }}>
+            🚀 <strong style={{ color: 'var(--green)' }}>Co dál?</strong> Zkus si zahrát s architekturou sítě v Levelu 1,
+            sleduj jak ReLU mění aktivace v Levelu 2, a pohrej si s learning rate v Levelu 3.
+            Reálné sítě jako GPT nebo Tesla Autopilot fungují na stejných principech — jen ve větším! 💪
+          </div>
+        </div>
+
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
           <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={restart}
             style={{ padding: '12px 28px' }}>
