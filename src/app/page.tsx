@@ -49,15 +49,15 @@ const TABS = [
   { id: 'quiz',    label: 'Kvíz',              icon: '🎯', level: 4, color: '#f97316', rgb: '249,115,22' },
 ] as const
 
-type TabId = typeof TABS[number]['id']
+type TabId = typeof TABS[number]['id'] | 'intro'
 
 interface Floater { id: number; amount: number; x: number }
 
 /* ─────────────────── MAIN ─────────────────── */
 export default function Home() {
-  const [tab,           setTab]           = useState<TabId>('arch')
+  const [tab,           setTab]           = useState<TabId>('intro')
   const [xp,            setXp]            = useState(0)
-  const [visited,       setVisited]       = useState<Set<TabId>>(new Set(['arch']))
+  const [visited,       setVisited]       = useState<Set<TabId>>(new Set())
   const [showLevelUp,   setShowLevelUp]   = useState(false)
   const [levelUpNum,    setLevelUpNum]    = useState(1)
   const [floaters,      setFloaters]      = useState<Floater[]>([])
@@ -68,7 +68,13 @@ export default function Home() {
     const sx = localStorage.getItem('nq_xp')
     const sv = localStorage.getItem('nq_visited')
     if (sx) setXp(parseInt(sx, 10))
-    if (sv) { try { setVisited(new Set(JSON.parse(sv))) } catch {} }
+    if (sv) {
+      try {
+        const arr: TabId[] = JSON.parse(sv)
+        setVisited(new Set(arr))
+        if (arr.length > 0) setTab('arch')
+      } catch {}
+    }
   }, [])
 
   const playerLevel = Math.floor(xp / 100) + 1
@@ -212,7 +218,7 @@ export default function Home() {
       </header>
 
       {/* ── Tab Bar ── */}
-      <nav style={{
+      {tab !== 'intro' && <nav style={{
         background: 'rgba(13,17,23,.92)', borderBottom: '1px solid var(--border)',
         padding: '0 24px',
       }}>
@@ -248,17 +254,65 @@ export default function Home() {
             )
           })}
         </div>
-      </nav>
+      </nav>}
 
       {/* ── Content ── */}
-      <main style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 24px' }}>
-        <div key={tab} style={{ animation: 'slide-in .3s ease' }}>
-          {tab === 'arch'    && <ArchTab    addXP={addXP} playSound={playSound} />}
-          {tab === 'forward' && <ForwardTab addXP={addXP} playSound={playSound} />}
-          {tab === 'train'   && <TrainTab   addXP={addXP} playSound={playSound} />}
-          {tab === 'quiz'    && <QuizTab    addXP={addXP} playSound={playSound} />}
-        </div>
-      </main>
+      {tab === 'intro' ? (
+        <main style={{ maxWidth: 700, margin: '0 auto', padding: '60px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', animation: 'fade-in .5s ease' }}>
+          <div style={{ fontSize: 72, marginBottom: 16 }}>🧬</div>
+          <h1 style={{
+            fontSize: 36, fontWeight: 900, marginBottom: 20, textAlign: 'center',
+            background: 'linear-gradient(135deg,var(--green),var(--purple))',
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+          }}>
+            Co je neuronová síť?
+          </h1>
+          <div style={{
+            background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.1)',
+            borderRadius: 20, padding: '24px 32px', marginBottom: 36, maxWidth: 560,
+            fontSize: 15, color: 'var(--text2)', lineHeight: 1.85,
+          }}>
+            <p>
+              Představ si, že učíš psa rozpoznávat kočky. Ukážeš mu fotku a řekneš{' '}
+              <strong style={{ color: 'var(--text)' }}>kočka / není kočka</strong>. Po tisících příkladech to pochopí.
+            </p>
+            <p style={{ marginTop: 14 }}>
+              Neuronová síť dělá <strong style={{ color: 'var(--green)' }}>přesně tohle</strong> — jen místo psa jsou to čísla v počítači.
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 40 }}>
+            {['🧠 4 interaktivní lekce', '⚡ Živé simulace', '🎯 Kvíz + XP', '🎮 Herní styl'].map(tag => (
+              <span key={tag} style={{
+                background: 'rgba(0,255,136,.1)', border: '1px solid rgba(0,255,136,.25)',
+                borderRadius: 20, padding: '6px 14px', fontSize: 13, color: 'var(--green)',
+              }}>{tag}</span>
+            ))}
+          </div>
+          <button
+            onClick={() => switchTab('arch')}
+            style={{
+              background: 'linear-gradient(135deg,var(--green),#00cc66)',
+              border: 'none', borderRadius: 14, padding: '16px 52px',
+              fontSize: 18, fontWeight: 800, color: '#000', cursor: 'pointer',
+              boxShadow: '0 0 30px rgba(0,255,136,.35)', fontFamily: 'inherit',
+              transition: 'transform .15s, box-shadow .15s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 44px rgba(0,255,136,.55)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 30px rgba(0,255,136,.35)' }}
+          >
+            Začít učení →
+          </button>
+        </main>
+      ) : (
+        <main style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 24px' }}>
+          <div key={tab} style={{ animation: 'slide-in .3s ease' }}>
+            {tab === 'arch'    && <ArchTab    addXP={addXP} playSound={playSound} />}
+            {tab === 'forward' && <ForwardTab addXP={addXP} playSound={playSound} />}
+            {tab === 'train'   && <TrainTab   addXP={addXP} playSound={playSound} />}
+            {tab === 'quiz'    && <QuizTab    addXP={addXP} playSound={playSound} />}
+          </div>
+        </main>
+      )}
     </div>
   )
 }

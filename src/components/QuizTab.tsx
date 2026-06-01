@@ -82,6 +82,7 @@ const QUESTIONS: Question[] = [
 const TOTAL_XP = 50 // max XP from quiz
 
 export default function QuizTab({ addXP, playSound }: Props) {
+  const [quizStarted, setQuizStarted] = useState(false)
   const [qIdx,      setQIdx]      = useState(0)
   const [selected,  setSelected]  = useState<number | null>(null)
   const [answered,  setAnswered]  = useState<boolean[]>(Array(QUESTIONS.length).fill(false))
@@ -137,6 +138,55 @@ export default function QuizTab({ addXP, playSound }: Props) {
   const handleShare = () => {
     if (navigator.clipboard) navigator.clipboard.writeText(shareText)
     alert('Výsledek zkopírován do schránky!\n\n' + shareText)
+  }
+
+  if (!quizStarted) {
+    return (
+      <div style={{ animation: 'fade-in .4s ease' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
+          <span style={{ fontSize: 42 }}>🎯</span>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5 }}>
+              <span style={{ background: 'rgba(249,115,22,.18)', color: 'var(--orange)', padding: '2px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700, letterSpacing: '1px' }}>BOSS LEVEL 4</span>
+              <h1 style={{ fontSize: 24, fontWeight: 900 }}>Kvíz</h1>
+            </div>
+          </div>
+        </div>
+        <div style={{ maxWidth: 580, margin: '0 auto', textAlign: 'center', padding: '40px 24px' }}>
+          <div style={{ fontSize: 72, marginBottom: 20 }}>🎓</div>
+          <h2 style={{ fontSize: 26, fontWeight: 900, marginBottom: 16, color: 'var(--orange)' }}>
+            Teď uvidíme jestli jsi pochopil/a jak neuronová síť funguje.
+          </h2>
+          <p style={{ fontSize: 15, color: 'var(--text2)', lineHeight: 1.75, marginBottom: 32, maxWidth: 480, margin: '0 auto 32px' }}>
+            Čeká tě 5 otázek. Každá správná odpověď = <strong style={{ color: 'var(--orange)' }}>+10 XP</strong>.
+            Po každé odpovědi uvidíš vysvětlení proč je ta odpověď správná.
+          </p>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 40 }}>
+            {['🧠 Neuronové sítě', '⚡ Aktivační funkce', '📉 Gradient descent', '🎭 Overfitting', '🎯 Softmax'].map(tag => (
+              <span key={tag} style={{
+                background: 'rgba(249,115,22,.1)', border: '1px solid rgba(249,115,22,.25)',
+                borderRadius: 20, padding: '5px 12px', fontSize: 13, color: 'var(--orange)',
+              }}>{tag}</span>
+            ))}
+          </div>
+          <button
+            onClick={() => setQuizStarted(true)}
+            style={{
+              background: 'linear-gradient(135deg,var(--orange),#f97316cc)',
+              border: 'none', borderRadius: 14, padding: '16px 52px',
+              fontSize: 17, fontWeight: 800, color: '#000', cursor: 'pointer',
+              boxShadow: '0 0 28px rgba(249,115,22,.35)', fontFamily: 'inherit',
+              transition: 'transform .15s, box-shadow .15s',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 40px rgba(249,115,22,.55)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 28px rgba(249,115,22,.35)' }}
+          >
+            Začít kvíz →
+          </button>
+        </div>
+      </div>
+    )
   }
 
   if (done) {

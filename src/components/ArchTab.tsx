@@ -18,14 +18,26 @@ function getLayers(hidden: number, neurons: number) {
 export default function ArchTab({ addXP }: Props) {
   const canvasRef    = useRef<HTMLCanvasElement>(null)
   const rafRef       = useRef<number | null>(null)
-  const hiddenRef    = useRef(2)
-  const neuronsRef   = useRef(4)
-  const [hidden,  setHidden]  = useState(2)
-  const [neurons, setNeurons] = useState(4)
+  const hiddenRef    = useRef(1)
+  const neuronsRef   = useRef(2)
+  const [hidden,  setHidden]  = useState(1)
+  const [neurons, setNeurons] = useState(2)
   const [tooltip, setTooltip] = useState<{ cx: number; cy: number; text: string } | null>(null)
+  const [taskDone, setTaskDone] = useState(false)
+  const taskXpRef = useRef(false)
 
-  const setH = (v: number) => { setHidden(v);  hiddenRef.current  = v; addXP(5) }
-  const setN = (v: number) => { setNeurons(v); neuronsRef.current = v; addXP(5) }
+  const setH = (v: number) => {
+    setHidden(v); hiddenRef.current = v; addXP(5)
+    if (v === 2 && neuronsRef.current === 4 && !taskXpRef.current) {
+      taskXpRef.current = true; setTaskDone(true); addXP(20)
+    }
+  }
+  const setN = (v: number) => {
+    setNeurons(v); neuronsRef.current = v; addXP(5)
+    if (hiddenRef.current === 2 && v === 4 && !taskXpRef.current) {
+      taskXpRef.current = true; setTaskDone(true); addXP(20)
+    }
+  }
 
   // Canvas animation
   useEffect(() => {
@@ -165,7 +177,7 @@ export default function ArchTab({ addXP }: Props) {
   return (
     <div>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
         <span style={{ fontSize: 42 }}>🧠</span>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5 }}>
@@ -178,9 +190,45 @@ export default function ArchTab({ addXP }: Props) {
         </div>
       </div>
 
+      {/* Task Card */}
+      <div style={{
+        background: taskDone ? 'rgba(0,255,136,.08)' : 'rgba(251,191,36,.06)',
+        border: `1px solid ${taskDone ? 'rgba(0,255,136,.3)' : 'rgba(251,191,36,.22)'}`,
+        borderRadius: 12, padding: '14px 18px', marginBottom: 20,
+        display: 'flex', gap: 12, alignItems: 'flex-start', transition: 'all .4s ease',
+      }}>
+        <div style={{ fontSize: 20, flexShrink: 0 }}>{taskDone ? '✅' : '🎯'}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1px', marginBottom: 6, color: taskDone ? 'var(--green)' : '#fbbf24' }}>
+            {taskDone ? 'SPLNĚNO! +20 XP' : 'ÚKOL LEVELU'}
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6, margin: 0 }}>
+            Nastav síť na{' '}
+            <strong style={{ color: taskDone ? 'var(--green)' : '#fbbf24' }}>2 skryté vrstvy</strong>{' '}
+            a{' '}
+            <strong style={{ color: taskDone ? 'var(--green)' : '#fbbf24' }}>4 neurony</strong>. Kolik má parametrů? Zapiš si to.
+          </p>
+          {taskDone && (
+            <p style={{ fontSize: 13, color: 'var(--green)', marginTop: 8, fontWeight: 600 }}>
+              Tato síť má {totalParams().toLocaleString('cs')} parametrů — tolik čísel se síť naučila.
+            </p>
+          )}
+        </div>
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 268px', gap: 20, alignItems: 'start' }}>
         {/* Canvas */}
         <div className={styles.card} style={{ position: 'relative', overflow: 'hidden', padding: 12 }}>
+          {/* Explanation */}
+          <div style={{
+            marginBottom: 10, padding: '10px 14px',
+            background: 'rgba(168,85,247,.08)', border: '1px solid rgba(168,85,247,.2)',
+            borderRadius: 10, fontSize: 13, color: 'var(--text2)', lineHeight: 1.65,
+          }}>
+            💡 <strong style={{ color: 'var(--purple)' }}>Jak to číst:</strong>{' '}
+            Každý kroužek = neuron. Každá čára = spojení s váhou.{' '}
+            <strong style={{ color: 'var(--text)' }}>Váhy jsou čísla která se síť učí měnit.</strong>
+          </div>
           <canvas
             ref={canvasRef} width={760} height={400}
             style={{ width: '100%', display: 'block', cursor: 'crosshair' }}

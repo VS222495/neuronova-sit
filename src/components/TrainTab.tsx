@@ -85,6 +85,12 @@ export default function TrainTab({ addXP, playSound }: Props) {
   const [lastAcc,    setLastAcc]    = useState(0)
   const [highScore,  setHighScore]  = useState(0)
   const [xpGiven,    setXpGiven]    = useState(false)
+  const [triedLow,   setTriedLow]   = useState(false)
+  const [triedHigh,  setTriedHigh]  = useState(false)
+  const triedLowRef  = useRef(false)
+  const triedHighRef = useRef(false)
+  const taskDone = triedLow && triedHigh
+  const taskXpRef = useRef(false)
 
   // Load high score
   useEffect(() => {
@@ -218,6 +224,11 @@ export default function TrainTab({ addXP, playSound }: Props) {
           playSound('correct')
         }
         if (!xpGiven) { addXP(30); setXpGiven(true) }
+        if (lr <= 0.015) { triedLowRef.current  = true; setTriedLow(true) }
+        if (lr >= 0.35)  { triedHighRef.current = true; setTriedHigh(true) }
+        if (triedLowRef.current && triedHighRef.current && !taskXpRef.current) {
+          taskXpRef.current = true; addXP(20)
+        }
       }
     }
     step()
@@ -236,7 +247,7 @@ export default function TrainTab({ addXP, playSound }: Props) {
   return (
     <div>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
         <span style={{ fontSize: 42 }}>📈</span>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5 }}>
@@ -249,9 +260,47 @@ export default function TrainTab({ addXP, playSound }: Props) {
         </div>
       </div>
 
+      {/* Task Card */}
+      <div style={{
+        background: taskDone ? 'rgba(59,130,246,.08)' : 'rgba(251,191,36,.06)',
+        border: `1px solid ${taskDone ? 'rgba(59,130,246,.3)' : 'rgba(251,191,36,.22)'}`,
+        borderRadius: 12, padding: '14px 18px', marginBottom: 20,
+        display: 'flex', gap: 12, alignItems: 'flex-start', transition: 'all .4s ease',
+      }}>
+        <div style={{ fontSize: 20, flexShrink: 0 }}>{taskDone ? '✅' : '🎯'}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1px', marginBottom: 6, color: taskDone ? 'var(--blue)' : '#fbbf24' }}>
+            {taskDone ? 'SPLNĚNO! +20 XP' : 'ÚKOL LEVELU'}
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6, margin: 0 }}>
+            Spusť trénování s malým learning rate{' '}
+            <strong style={{ color: taskDone ? 'var(--blue)' : '#fbbf24' }}>(0.01)</strong>{' '}
+            {triedLow ? '✓' : ''}.{' '}
+            Pak zkus velký{' '}
+            <strong style={{ color: taskDone ? 'var(--blue)' : '#fbbf24' }}>(0.4)</strong>{' '}
+            {triedHigh ? '✓' : ''}. Vidíš rozdíl na grafu?
+          </p>
+          {taskDone && (
+            <p style={{ fontSize: 13, color: 'var(--blue)', marginTop: 8, fontWeight: 600 }}>
+              Výborně! Malý rate = pomalé učení, velký rate = nestabilní. Tenhle kompromis řeší každý AI inženýr.
+            </p>
+          )}
+        </div>
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20, alignItems: 'start' }}>
         {/* Canvas */}
         <div className={styles.card} style={{ padding: 12 }}>
+          {/* Explanation */}
+          <div style={{
+            marginBottom: 10, padding: '10px 14px',
+            background: 'rgba(59,130,246,.08)', border: '1px solid rgba(59,130,246,.2)',
+            borderRadius: 10, fontSize: 13, color: 'var(--text2)', lineHeight: 1.65,
+          }}>
+            💡 <strong style={{ color: 'var(--blue)' }}>Jak číst graf:</strong>{' '}
+            Graf ukazuje jak moc se síť mýlí. Čím níže červená křivka, tím chytřejší síť.{' '}
+            <strong style={{ color: 'var(--text)' }}>Cíl = dostat křivku co nejníže.</strong>
+          </div>
           <canvas ref={canvasRef} width={720} height={340}
             style={{ width: '100%', display: 'block' }} />
           {/* Epoch + acc bar */}

@@ -44,12 +44,17 @@ const INPUT_COLORS: [number,number,number][] = [
 export default function ForwardTab({ addXP }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rafRef    = useRef<number | null>(null)
-  const inputsRef = useRef([0.5, 0.5, 0.5])
+  const inputsRef = useRef([5, 5, 5])
 
-  const [inputs, setInputs] = useState([0.5, 0.5, 0.5])
+  const [inputs, setInputs] = useState([5, 5, 5])
   const [result, setResult] = useState(() => forward([0.5, 0.5, 0.5]))
   const [prevOut, setPrevOut] = useState([0, 0])
   const [displayOut, setDisplayOut] = useState([0, 0])
+
+  const [triedHighX1, setTriedHighX1] = useState(false)
+  const [triedHighX2, setTriedHighX2] = useState(false)
+  const taskDone = triedHighX1 && triedHighX2
+  const taskXpRef = useRef(false)
 
   // Animate output number
   useEffect(() => {
@@ -72,10 +77,14 @@ export default function ForwardTab({ addXP }: Props) {
     const next = [...inputsRef.current]; next[i] = v
     inputsRef.current = next
     setInputs([...next])
-    const r = forward(next)
+    const r = forward(next.map(x => x / 10))
     setPrevOut(result.out)
     setResult(r)
     addXP(5)
+    // Task tracking: tried high X1 (combo [10,1,5]) and high X2 (combo [1,10,1])
+    if (next[0] >= 8 && next[1] <= 3) setTriedHighX1(true)
+    if (next[1] >= 8 && next[0] <= 3) setTriedHighX2(true)
+    if (next[0] >= 8 && next[1] <= 3 && next[1] >= 8 && next[0] <= 3) { /* both at once, rare */ }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result.out, addXP])
 
@@ -100,7 +109,7 @@ export default function ForwardTab({ addXP }: Props) {
     const draw = () => {
       t += 0.016
       const inp = inputsRef.current
-      const { h, out } = forward(inp)
+      const { h, out } = forward(inp.map(x => x / 10))
 
       ctx.clearRect(0, 0, W, H)
 
@@ -152,7 +161,7 @@ export default function ForwardTab({ addXP }: Props) {
         ctx.strokeStyle = `rgba(${r[0]},${r[1]},${r[2]},.9)`
         ctx.lineWidth   = 2; ctx.fill(); ctx.stroke()
         ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.font = 'bold 9px "JetBrains Mono",monospace'
-        ctx.textAlign = 'center'; ctx.fillText(v.toFixed(2), x, y + 3.5)
+        ctx.textAlign = 'center'; ctx.fillText(String(inp[n]), x, y + 3.5)
       }
 
       // Hidden (ReLU)
@@ -207,6 +216,14 @@ export default function ForwardTab({ addXP }: Props) {
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current) }
   }, [])
 
+  // Award XP when both combos tried
+  useEffect(() => {
+    if (taskDone && !taskXpRef.current) {
+      taskXpRef.current = true
+      addXP(25)
+    }
+  }, [taskDone, addXP])
+
   const sliderLabels = ['x₁', 'x₂', 'x₃']
   const sliderCls    = ['', 'purple', 'blue']
   const sliderColors = ['var(--green)', 'var(--purple)', 'var(--blue)']
@@ -214,7 +231,7 @@ export default function ForwardTab({ addXP }: Props) {
   return (
     <div>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
         <span style={{ fontSize: 42 }}>⚡</span>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5 }}>
@@ -227,9 +244,43 @@ export default function ForwardTab({ addXP }: Props) {
         </div>
       </div>
 
+      {/* Task Card */}
+      <div style={{
+        background: taskDone ? 'rgba(168,85,247,.08)' : 'rgba(251,191,36,.06)',
+        border: `1px solid ${taskDone ? 'rgba(168,85,247,.3)' : 'rgba(251,191,36,.22)'}`,
+        borderRadius: 12, padding: '14px 18px', marginBottom: 20,
+        display: 'flex', gap: 12, alignItems: 'flex-start', transition: 'all .4s ease',
+      }}>
+        <div style={{ fontSize: 20, flexShrink: 0 }}>{taskDone ? '✅' : '🎯'}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1px', marginBottom: 6, color: taskDone ? 'var(--purple)' : '#fbbf24' }}>
+            {taskDone ? 'SPLNĚNO! +25 XP' : 'ÚKOL LEVELU'}
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6, margin: 0 }}>
+            Nastav <strong style={{ color: taskDone ? 'var(--purple)' : '#fbbf24' }}>x₁=10, x₂=1, x₃=5</strong>. Která třída vyhraje?
+            Teď zkus <strong style={{ color: taskDone ? 'var(--purple)' : '#fbbf24' }}>x₁=1, x₂=10, x₃=1</strong>. Změnil se výsledek?
+          </p>
+          {taskDone && (
+            <p style={{ fontSize: 13, color: 'var(--purple)', marginTop: 8, fontWeight: 600 }}>
+              Skvěle! Vidíš, jak jiné vstupy vedou k jinému výsledku? Přesně takhle pracuje iPhone Face ID.
+            </p>
+          )}
+        </div>
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'start' }}>
         {/* Canvas */}
         <div className={styles.card} style={{ padding: 12 }}>
+          {/* Explanation */}
+          <div style={{
+            marginBottom: 10, padding: '10px 14px',
+            background: 'rgba(168,85,247,.08)', border: '1px solid rgba(168,85,247,.2)',
+            borderRadius: 10, fontSize: 13, color: 'var(--text2)', lineHeight: 1.65,
+          }}>
+            💡 <strong style={{ color: 'var(--purple)' }}>Jak to funguje:</strong>{' '}
+            Takhle síť počítá předpověď — vstup projde vrstvami a na konci dostaneš odpověď.{' '}
+            <strong style={{ color: 'var(--text)' }}>Tohle se děje když iPhone rozpoznává tvůj obličej.</strong>
+          </div>
           <canvas ref={canvasRef} width={680} height={380}
             style={{ width: '100%', display: 'block' }} />
         </div>
@@ -252,10 +303,10 @@ export default function ForwardTab({ addXP }: Props) {
                     {sliderLabels[i]}
                   </label>
                   <span style={{ fontSize: 20, fontWeight: 800, color: sliderColors[i], fontFamily: '"JetBrains Mono",monospace' }}>
-                    {inputs[i].toFixed(2)}
+                    {inputs[i]}
                   </span>
                 </div>
-                <input type="range" min={0} max={1} step={0.01} value={inputs[i]}
+                <input type="range" min={0} max={10} step={1} value={inputs[i]}
                   className={sliderCls[i]}
                   onChange={e => handleInput(i, parseFloat(e.target.value))} />
               </div>
